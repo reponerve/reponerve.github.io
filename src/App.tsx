@@ -3,43 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Terminal, 
-  GitBranch, 
-  Cpu, 
-  Zap, 
-  ShieldAlert, 
-  RefreshCw, 
-  Network, 
-  ChevronRight, 
-  Copy, 
-  Check, 
-  Github, 
-  ExternalLink, 
-  Code2, 
-  BookOpen, 
-  Settings2, 
-  HeartHandshake, 
-  Users, 
-  Clock, 
-  Sparkles,
+import { useState, useEffect, useRef, type FormEvent } from 'react';
+import {
+  Terminal,
+  Zap,
+  ShieldAlert,
+  RefreshCw,
+  Network,
+  ChevronRight,
+  Copy,
+  Check,
+  Github,
+  ExternalLink,
+  BookOpen,
+  Users,
+  Clock,
   Play,
-  Share2,
   FileCode,
-  AlertCircle,
   MessageSquare,
-  HelpCircle
+  HelpCircle,
 } from 'lucide-react';
 
-// Interfaces
-interface Feature {
-  id: string;
-  icon: React.ComponentType<any>;
-  title: string;
-  description: string;
-  badge?: string;
-}
+import siteData from './site-data.json';
+
+const { install: installCommands, stats, links, commandDemos: commandDemosData, configPresets, teamPitch, demoScript, setupSteps, homebrew, mcpClients, contributor } = siteData;
 
 interface CommandDemo {
   id: string;
@@ -48,22 +35,19 @@ interface CommandDemo {
   output: string[];
 }
 
+type ConfigPresetKey = keyof typeof configPresets;
+
 export default function App() {
-  // Navigation active states
-  const [activeSection, setActiveSection] = useState('hero');
-  
-  // CLI command manager
   const [selectedCmd, setSelectedCmd] = useState<string>('init');
   const [typedOutput, setTypedOutput] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [terminalView, setTerminalView] = useState<'gif' | 'interactive'>('gif');
   const terminalBottomRef = useRef<HTMLDivElement>(null);
 
   // Copy helper
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // Configuration playground states
-  const [selectedConfigPreset, setSelectedConfigPreset] = useState<string>('default');
+  const [selectedConfigPreset, setSelectedConfigPreset] = useState<ConfigPresetKey>('default');
 
   // Interactive Code Graph states
   const [hoveredGraphNode, setHoveredGraphNode] = useState<string | null>(null);
@@ -83,87 +67,8 @@ export default function App() {
     color: string;
   } | null>(null);
 
-  // Command demos
-  const commandDemos: Record<string, CommandDemo> = {
-    init: {
-      id: 'init',
-      label: 'reponerve init',
-      command: 'reponerve init',
-      output: [
-        '📂 Creating directory .reponerve/',
-        '💾 Initializing SQLite software memory database...',
-        '🛡️ Bootstrapping custom security rules and discipline policies...',
-        '📝 Generating default configuration .reponerve/config.yaml...',
-        '✅ RepoNerve initialized! Now run \'reponerve scan\' to build memory.'
-      ]
-    },
-    scan: {
-      id: 'scan',
-      label: 'reponerve scan',
-      command: 'reponerve scan',
-      output: [
-        '📂 Scanning repository file tree...',
-        '🧬 Parsing AST, code symbols, and call graphs (20 languages supported)...',
-        '📜 Ingesting git history, contributor profiles, and ownership metrics...',
-        '📝 Ingesting Architecture Decision Records (ADRs) and design conventions...',
-        '✅ Ingested 142 files, 432 functions, and 45 commits in 1.45s.',
-        '💾 Software memory built successfully in .reponerve/memory.db (3.2 MB).'
-      ]
-    },
-    doctor: {
-      id: 'doctor',
-      label: 'reponerve doctor',
-      command: 'reponerve doctor',
-      output: [
-        '🏥 Checking RepoNerve system health...',
-        '✅ Software memory (.reponerve/memory.db) is healthy & synchronized',
-        '✅ Code index matches current git HEAD reference',
-        '✅ Local configurations parsed correctly',
-        '📡 MCP Server state: Ready to accept external client queries',
-        '✨ RepoNerve doctor run successful. System status: HEALTHY'
-      ]
-    },
-    onboard: {
-      id: 'onboard',
-      label: 'reponerve onboard',
-      command: 'reponerve onboard --format compact --token-budget 400',
-      output: [
-        '🧠 RepoNerve Onboarding Evidence Pack:',
-        '📍 Repository: go-auth-service (Go Language)',
-        '📋 Description: Distributed security server providing secure token generation',
-        '🔑 Key decisions: Uses SQLite for persistence, Argon2ID for password hashing',
-        '👥 Key contributors: Alice (auth package), Bob (database adapters)',
-        '🎯 Use \'reponerve plan "..."\' to map code refactorings.'
-      ]
-    },
-    plan: {
-      id: 'plan',
-      label: 'reponerve plan',
-      command: 'reponerve plan "Add OAuth login"',
-      output: [
-        '📋 Planning task: "Add OAuth login"',
-        '🔍 Retrieving relevant contexts from codebase memory...',
-        '📍 Impact Analysis: Will modify internal/auth/oauth.go and main.go',
-        '🛠️ Proposed Steps:',
-        '   1. Add OAuth provider details in auth.Config struct',
-        '   2. Create OAuthTokenHandler to validate auth code exchange',
-        '💡 Tip: Check reusable code first with \'reponerve reuse-check "OAuth"\'`'
-      ]
-    },
-    mcp: {
-      id: 'mcp',
-      label: 'reponerve mcp',
-      command: 'reponerve mcp',
-      output: [
-        '🚀 Starting RepoNerve Model Context Protocol (MCP) server...',
-        '📡 Listening on stdio protocol (secure bidirectional channel)',
-        '💡 Registered tools: [read_code, search_code, list_definitions, get_context_summary]',
-        '🤖 Active Client: Claude Desktop 3.5 Sonnet connected successfully',
-        '💬 Tool request: "search_code" with query: "rate limiting"',
-        '✨ Retrieved 4 code definitions and evidence maps (214 tokens returned)'
-      ]
-    }
-  };
+  // Command demos (synced from reponerve/reponerve via scripts/sync-site-data.mjs)
+  const commandDemos: Record<string, CommandDemo> = commandDemosData as Record<string, CommandDemo>;
 
   // Simulate command typing output
   useEffect(() => {
@@ -204,83 +109,8 @@ export default function App() {
     }, 2000);
   };
 
-  // Presets config playground definitions
-  const configPresets: Record<string, {
-    description: string;
-    code: string;
-    outcomes: string[];
-  }> = {
-    default: {
-      description: 'Standard memory engine settings designed for general codebase scanning, AST building, and AI chat.',
-      code: `repository:
-  path: "."
-
-storage:
-  sqlite_path: ".reponerve/memory.db"
-
-ai:
-  provider: "none"
-
-ingestion:
-  document_paths:
-    - path: "docs/adr"
-      format: "markdown"`,
-      outcomes: [
-        'Local AST-aware code chunking enabled',
-        'Local SQLite database indexing active (.reponerve/memory.db)',
-        'Standard ADR document indexing configured'
-      ]
-    },
-    hardened: {
-      description: 'Large-scale workspace configuration for deep syntactic parsing and external providers.',
-      code: `repository:
-  path: "."
-
-storage:
-  sqlite_path: ".reponerve/memory.db"
-
-ai:
-  provider: "openai"
-
-ingestion:
-  document_paths:
-    - path: "docs/adr"
-      format: "markdown"
-    - path: "rfc"
-      format: "markdown"`,
-      outcomes: [
-        'Deep AST class & function structure mapping',
-        'External provider configuration active',
-        'Multi-directory document ingestion focused'
-      ]
-    },
-    syncMaster: {
-      description: 'Custom path overrides ensuring all design decisions and code context are indexed.',
-      code: `repository:
-  path: "."
-
-storage:
-  sqlite_path: ".reponerve/memory.db"
-
-ai:
-  provider: "none"
-
-ingestion:
-  document_paths:
-    - path: "docs/adr"
-      format: "markdown"
-    - path: "docs/decisions"
-      format: "markdown"`,
-      outcomes: [
-        'Custom decision folder ingestion active',
-        'Durable local SQLite knowledge base',
-        'Explicit multi-directory indexing focus'
-      ]
-    }
-  };
-
   // Demo Newsletter sign up action
-  const handleSubscribeDemo = (e: React.FormEvent) => {
+  const handleSubscribeDemo = (e: FormEvent) => {
     e.preventDefault();
     if (!demoEmail) return;
     setSubscribedDemo(true);
@@ -313,7 +143,7 @@ ingestion:
         setActiveLogoNode({
           name: 'Model Context Protocol (MCP) Server',
           role: 'Unified AI assistant connector',
-          details: 'Bridges the codebase with AI clients. Serves tools like read_code, list_definitions, and get_context_summary directly to Cursor, VS Code, and Claude Desktop.',
+          details: 'Bridges the codebase with AI clients. Serves ask, plan, explain, reuse_check, ship_check, and 44 more tools to Cursor, VS Code Copilot, JetBrains, and Claude Desktop.',
           color: 'text-zinc-900 border-zinc-200'
         });
         break;
@@ -366,13 +196,14 @@ ingestion:
             <a href="#playbook" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors" id="nav-link-playbook">Playbook</a>
             <a href="#architecture" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors" id="nav-link-architecture">Architecture</a>
             <a href="#installation" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors" id="nav-link-installation">Install</a>
+            <a href={links.docs} target="_blank" rel="noreferrer" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors" id="nav-link-docs">Docs</a>
             <a href="#contribute" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors" id="nav-link-contribute">Contribute</a>
           </nav>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
             <a 
-              href="https://github.com/reponerve/reponerve" 
+              href={links.github}
               target="_blank" 
               rel="noreferrer"
               className="px-3.5 py-1.5 rounded-lg text-xs font-mono font-medium border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 flex items-center gap-2 transition-all active:scale-95 shadow-sm"
@@ -395,19 +226,19 @@ ingestion:
             {/* Tag Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-zinc-200 bg-zinc-50 text-xs text-zinc-600 mb-6 font-mono shadow-sm" id="hero-version-tag">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>v1.5.0 Released</span>
+              <span>{siteData.version} Released</span>
               <span className="text-zinc-300">|</span>
-              <span className="text-zinc-800 font-semibold">Go Memory Engine</span>
+              <span className="text-zinc-800 font-semibold">Local-First · Open Source</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-display tracking-tight text-zinc-900 leading-[1.15] mb-6" id="hero-main-heading">
-              The <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-800 to-stone-800">Memory & Context</span> Engine for Software Repositories
+              Local-First <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-800 to-stone-800">Software Understanding</span> for Developers &amp; AI Agents
             </h1>
 
             {/* Subtext */}
             <p className="text-zinc-500 text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 max-w-2xl" id="hero-description">
-              reponerve is an open-source, Go-powered repository memory and context engine. It scans, structuralizes, and tracks your codebase in a local database and runs a Model Context Protocol (MCP) server, offering instant context-aware intelligence directly to AI tools.
+              RepoNerve scans your repository once — git history, ADRs, and code structure — and builds local software memory. Query <em>why</em> code exists, <em>who</em> owns it, and <em>what breaks</em> if you change it. Works in AI chat via MCP or CLI. No cloud required.
             </p>
 
             {/* Quick Install Bar Widget */}
@@ -415,10 +246,10 @@ ingestion:
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2.5 font-mono text-sm overflow-x-auto whitespace-nowrap scrollbar-none py-1">
                   <span className="text-zinc-400 select-none">$</span>
-                  <span className="text-zinc-800 font-mono">curl -fsSL https://raw.githubusercontent.com/reponerve/reponerve/main/install.sh | sh</span>
+                  <span className="text-zinc-800 font-mono">{installCommands.script}</span>
                 </div>
                 <button
-                  onClick={() => handleCopy('curl -fsSL https://raw.githubusercontent.com/reponerve/reponerve/main/install.sh | sh', 'hero-install')}
+                  onClick={() => handleCopy(installCommands.script, 'hero-install')}
                   className="p-2 rounded-lg bg-white text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all border border-zinc-200 hover:border-zinc-300 active:scale-95 shadow-sm"
                   title="Copy command"
                   id="btn-hero-copy"
@@ -462,16 +293,16 @@ ingestion:
             {/* Performance Stats row */}
             <div className="grid grid-cols-3 gap-6 pt-10 mt-6 border-t border-zinc-200/80 w-full text-left" id="hero-performance-stats">
               <div>
-                <span className="block text-xl md:text-2xl font-bold font-mono text-zinc-900">&lt; 50ms</span>
-                <span className="text-xs text-zinc-500 font-medium">Context Search Latency</span>
+                <span className="block text-xl md:text-2xl font-bold font-mono text-zinc-900">{stats.languages}</span>
+                <span className="text-xs text-zinc-500 font-medium">Indexed Languages</span>
               </div>
               <div>
-                <span className="block text-xl md:text-2xl font-bold font-mono text-zinc-900">14.8 MB</span>
-                <span className="text-xs text-zinc-500 font-medium">Go Binary Size</span>
+                <span className="block text-xl md:text-2xl font-bold font-mono text-zinc-900">{stats.mcpTools}</span>
+                <span className="text-xs text-zinc-500 font-medium">MCP Tools</span>
               </div>
               <div>
-                <span className="block text-xl md:text-2xl font-bold font-mono text-zinc-900">Zero</span>
-                <span className="text-xs text-zinc-500 font-medium">External Dependencies</span>
+                <span className="block text-xl md:text-2xl font-bold font-mono text-zinc-900">Local</span>
+                <span className="text-xs text-zinc-500 font-medium">First · No Cloud</span>
               </div>
             </div>
 
@@ -671,7 +502,7 @@ ingestion:
               {/* GIF display stage */}
               <div className="flex-1 bg-zinc-950 p-5 flex flex-col items-center justify-center relative min-h-[320px]">
                 <img
-                  src="https://github.com/reponerve/reponerve/blob/main/docs/assets/reponerve-demo.gif?raw=true"
+                  src={links.demoGif}
                   alt="RepoNerve Official Demo"
                   className="w-full h-auto max-h-[300px] object-contain rounded-lg"
                   referrerPolicy="no-referrer"
@@ -688,7 +519,7 @@ ingestion:
                     Actual Terminal Performance
                   </span>
                   <a 
-                    href="https://github.com/reponerve/reponerve"
+                    href={links.github}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[10px] font-mono text-zinc-300 hover:text-white underline flex items-center gap-1 transition-colors"
@@ -728,11 +559,11 @@ ingestion:
                 <div className="mb-4 font-sans">
                   <p className="text-xs text-zinc-500 font-normal leading-relaxed mb-3">
                     {selectedCmd === 'init' && 'Initializes the local .reponerve directory, SQLite memory instance, custom rules, and the default config file.'}
-                    {selectedCmd === 'scan' && 'Parses AST, symbols, and call graphs across Go/TS/Python. Merges git commit logs and ADR decisions without LLM costs.'}
+                    {selectedCmd === 'scan' && `Ingests git history, ADRs, and code intelligence (${stats.languagesLabel}). No LLM required.`}
                     {selectedCmd === 'doctor' && 'Performs diagnostics on repository health, DB alignment, and MCP state to ensure indexing is healthy.'}
                     {selectedCmd === 'onboard' && 'Creates a compact repository orientation pack outlining key decisions, creators, and codebase architecture.'}
                     {selectedCmd === 'plan' && 'Analyzes the codebase and maps edits, file impacts, and sequential execution steps for a chosen development task.'}
-                    {selectedCmd === 'mcp' && 'Boots the Model Context Protocol (MCP) background server to feed structured code evidence directly to Claude or Cursor.'}
+                    {selectedCmd === 'mcp' && `Boots the MCP server over stdio — ${stats.mcpTools} tools for Cursor, VS Code, Copilot, and other MCP hosts.`}
                   </p>
 
                   {/* Copyable Command execution bar */}
@@ -750,6 +581,26 @@ ingestion:
                       )}
                     </button>
                   </div>
+                </div>
+              </div>
+
+              {/* Simulated terminal output */}
+              <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-950 overflow-hidden">
+                <div className="px-3 py-2 border-b border-zinc-800 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500/80" />
+                  <div className="w-2 h-2 rounded-full bg-yellow-500/80" />
+                  <div className="w-2 h-2 rounded-full bg-green-500/80" />
+                  <span className="text-[10px] font-mono text-zinc-500 ml-1">output preview</span>
+                </div>
+                <div className="p-4 font-mono text-[11px] text-zinc-300 leading-relaxed max-h-[180px] overflow-y-auto">
+                  <p className="text-zinc-500 mb-2">$ {commandDemos[selectedCmd].command}</p>
+                  {typedOutput.map((line, i) => (
+                    <p key={i} className="mb-1">{line}</p>
+                  ))}
+                  {isTyping && (
+                    <span className="inline-block w-2 h-3.5 bg-zinc-400 animate-pulse ml-0.5" />
+                  )}
+                  <div ref={terminalBottomRef} />
                 </div>
               </div>
 
@@ -771,7 +622,7 @@ ingestion:
               Engineered for Complete Visibility
             </h2>
             <p className="text-zinc-500 text-base sm:text-lg font-normal leading-relaxed" id="desc-features">
-              reponerve introduces five essential organs into your codebase workspace, running in unison to guarantee security compliance and streamline code deliveries.
+              RepoNerve delivers evidence-backed repository intelligence — scan once, query forever. Every answer traces back to code, commits, or ADRs in your local memory database.
             </p>
           </div>
 
@@ -893,19 +744,13 @@ ingestion:
               </div>
 
               {/* Connected remotes display */}
-              <div className="grid grid-cols-3 gap-2 mt-4 text-center">
-                <div className="p-2 rounded bg-white border border-zinc-200">
-                  <span className="block text-[10px] font-mono text-zinc-400">PRIMARY</span>
-                  <span className="text-xs font-bold text-zinc-800">Cursor</span>
-                </div>
-                <div className="p-2 rounded bg-white border border-zinc-200">
-                  <span className="block text-[10px] font-mono text-zinc-400">CLIENT</span>
-                  <span className="text-xs font-bold text-zinc-600">Claude</span>
-                </div>
-                <div className="p-2 rounded bg-white border border-zinc-200">
-                  <span className="block text-[10px] font-mono text-zinc-400">SUPPORTED</span>
-                  <span className="text-xs font-semibold text-zinc-400">VSCode</span>
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4 text-center">
+                {mcpClients.map((client) => (
+                  <div key={client.name} className="p-2 rounded bg-white border border-zinc-200">
+                    <span className="block text-[10px] font-mono text-zinc-400">{client.label}</span>
+                    <span className="text-xs font-bold text-zinc-800">{client.name}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1003,9 +848,7 @@ ingestion:
                 </div>
                 
                 <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-700 text-xs font-mono leading-relaxed space-y-3 relative overflow-hidden">
-                  <p>
-                    <strong className="text-zinc-900">“Hey team, we\'re setting up RepoNerve for our repository.</strong> It\'s a lightweight Go core utility built with SQLite and Tree-sitter that scans our repository structure, git history, and ADRs into a local database (<code className="bg-zinc-200 px-1 rounded">.reponerve/memory.db</code>). It spins up a local Model Context Protocol (MCP) server so our AI tools (Cursor, Copilot, Claude Desktop) can instantly query exact codebase context and decisions without hitting token limits, slow uploads, or exposing code to third-party endpoints.”
-                  </p>
+                  <p>{teamPitch}</p>
                   
                   {/* Speech bubble pin tail decorative element */}
                   <div className="absolute right-4 bottom-1 w-20 h-20 bg-zinc-200/10 rounded-full blur-xl pointer-events-none" />
@@ -1014,10 +857,7 @@ ingestion:
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-[10px] font-mono text-zinc-400">Share this message on Slack or Teams</span>
                   <button
-                    onClick={() => handleCopy(
-                      "Hey team, we\'re setting up RepoNerve for our repository. It\'s a lightweight Go core utility built with SQLite and Tree-sitter that scans our repository structure, git history, and ADRs into a local database (.reponerve/memory.db). It spins up a local Model Context Protocol (MCP) server so our AI tools (Cursor, Copilot, Claude Desktop) can instantly query exact codebase context and decisions without hitting token limits, slow uploads, or exposing code to third-party endpoints.", 
-                      "slack-pitch"
-                    )}
+                    onClick={() => handleCopy(teamPitch, 'slack-pitch')}
                     className="px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 shadow-sm flex items-center gap-1.5"
                     id="btn-copy-pitch"
                   >
@@ -1048,32 +888,11 @@ ingestion:
 
                 <div className="relative group">
                   <pre className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-900 text-[11px] font-mono text-zinc-300 overflow-x-auto leading-relaxed text-left">
-                    <code>
-{`# 1. Install & verify binary
-reponerve --version
-
-# 2. Go to your local git repository
-cd /path/to/your-repo
-
-# 3. Initialize workspace database
-reponerve init
-
-# 4. Scan repository & build memory
-reponerve scan
-
-# 5. Diagnostic check & orientation onboarding
-reponerve doctor
-reponerve onboard
-
-# 6. Task planning, reuse check, and code review
-reponerve plan "Add webhook notifications"
-reponerve reuse-check "add webhook"
-reponerve review "webhook"`}
-                    </code>
+                    <code>{demoScript}</code>
                   </pre>
                   <button
                     onClick={() => handleCopy(
-                      "reponerve --version && reponerve init && reponerve scan && reponerve doctor && reponerve onboard && reponerve plan \"Add webhook notifications\" && reponerve reuse-check \"add webhook\" && reponerve review \"webhook\"",
+                      demoScript.split('\n').filter((l) => !l.startsWith('#') && l.trim()).join(' && '),
                       "copy-demo-script"
                     )}
                     className="absolute top-2.5 right-2.5 p-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-all"
@@ -1249,60 +1068,31 @@ reponerve review "webhook"`}
                 Flexible & Declarative Nervous Controls
               </h2>
               <p className="text-zinc-500 text-sm sm:text-base font-normal leading-relaxed mb-8">
-                reponerve reads a clean `config.yaml` file located in your `.reponerve/` workspace directory. Modify the behavior of your git nervous system in seconds by writing clean rules.
+                RepoNerve reads <code className="text-zinc-700 bg-zinc-100 px-1 rounded">.reponerve/config.yaml</code> for repository path, SQLite storage, optional document ingestion paths (RFC-005), and AI provider settings.
               </p>
 
               {/* Presets trigger choices */}
               <div className="space-y-3" id="playground-preset-buttons">
                 <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 pl-1 block">Choose Preset Profile:</span>
-                
-                <button
-                  id="btn-preset-default"
-                  onClick={() => setSelectedConfigPreset('default')}
-                  className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
-                    selectedConfigPreset === 'default' 
-                      ? 'bg-white border-zinc-400 text-zinc-900 shadow-sm' 
-                      : 'bg-zinc-100/40 border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300'
-                  }`}
-                >
-                  <div>
-                    <span className="block font-mono text-sm font-bold text-zinc-800">Standard Developer Profile</span>
-                    <span className="text-xs text-zinc-400 font-normal">General formatting & secrets security filters</span>
-                  </div>
-                  <ChevronRight className={`w-4 h-4 ${selectedConfigPreset === 'default' ? 'text-zinc-800' : 'text-zinc-300'}`} />
-                </button>
 
-                <button
-                  id="btn-preset-hardened"
-                  onClick={() => setSelectedConfigPreset('hardened')}
-                  className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
-                    selectedConfigPreset === 'hardened' 
-                      ? 'bg-white border-zinc-400 text-zinc-900 shadow-sm' 
-                      : 'bg-zinc-100/40 border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300'
-                  }`}
-                >
-                  <div>
-                    <span className="block font-mono text-sm font-bold text-zinc-800">Hardened Production Profile</span>
-                    <span className="text-xs text-zinc-400 font-normal">Strict security blocks, automated dependency scans</span>
-                  </div>
-                  <ChevronRight className={`w-4 h-4 ${selectedConfigPreset === 'hardened' ? 'text-zinc-800' : 'text-zinc-300'}`} />
-                </button>
-
-                <button
-                  id="btn-preset-sync"
-                  onClick={() => setSelectedConfigPreset('syncMaster')}
-                  className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
-                    selectedConfigPreset === 'syncMaster' 
-                      ? 'bg-white border-zinc-400 text-zinc-900 shadow-sm' 
-                      : 'bg-zinc-100/40 border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300'
-                  }`}
-                >
-                  <div>
-                    <span className="block font-mono text-sm font-bold text-zinc-800">Synaptic Mirroring Profile</span>
-                    <span className="text-xs text-zinc-400 font-normal">Multi-endpoint replication setups</span>
-                  </div>
-                  <ChevronRight className={`w-4 h-4 ${selectedConfigPreset === 'syncMaster' ? 'text-zinc-800' : 'text-zinc-300'}`} />
-                </button>
+                {(Object.keys(configPresets) as ConfigPresetKey[]).map((key) => (
+                  <button
+                    key={key}
+                    id={`btn-preset-${key}`}
+                    onClick={() => setSelectedConfigPreset(key)}
+                    className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
+                      selectedConfigPreset === key
+                        ? 'bg-white border-zinc-400 text-zinc-900 shadow-sm'
+                        : 'bg-zinc-100/40 border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300'
+                    }`}
+                  >
+                    <div>
+                      <span className="block font-mono text-sm font-bold text-zinc-800">{configPresets[key].title}</span>
+                      <span className="text-xs text-zinc-400 font-normal">{configPresets[key].subtitle}</span>
+                    </div>
+                    <ChevronRight className={`w-4 h-4 ${selectedConfigPreset === key ? 'text-zinc-800' : 'text-zinc-300'}`} />
+                  </button>
+                ))}
               </div>
 
             </div>
@@ -1396,9 +1186,9 @@ reponerve review "webhook"`}
               </div>
 
               <div className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
-                <code className="font-mono text-xs text-zinc-800">$ npm install -g reponerve</code>
+                <code className="font-mono text-xs text-zinc-800">$ {installCommands.npm}</code>
                 <button
-                  onClick={() => handleCopy('npm install -g reponerve', 'install-npm')}
+                  onClick={() => handleCopy(installCommands.npm, 'install-npm')}
                   className="p-1.5 rounded bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 border border-zinc-200 shadow-sm transition-all"
                   id="btn-copy-npm"
                 >
@@ -1418,9 +1208,9 @@ reponerve review "webhook"`}
               </div>
 
               <div className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
-                <code className="font-mono text-xs text-zinc-800">$ curl -fsSL https://raw.githubusercontent.com/reponerve/reponerve/main/install.sh | sh</code>
+                <code className="font-mono text-xs text-zinc-800 truncate mr-2">{installCommands.script}</code>
                 <button
-                  onClick={() => handleCopy('curl -fsSL https://raw.githubusercontent.com/reponerve/reponerve/main/install.sh | sh', 'install-script')}
+                  onClick={() => handleCopy(installCommands.script, 'install-script')}
                   className="p-1.5 rounded bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 border border-zinc-200 shadow-sm transition-all"
                   id="btn-copy-script"
                 >
@@ -1440,9 +1230,9 @@ reponerve review "webhook"`}
               </div>
 
               <div className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
-                <code className="font-mono text-xs text-zinc-800">$ go install github.com/reponerve/reponerve@latest</code>
+                <code className="font-mono text-xs text-zinc-800">$ {installCommands.go}</code>
                 <button
-                  onClick={() => handleCopy('go install github.com/reponerve/reponerve@latest', 'install-go')}
+                  onClick={() => handleCopy(installCommands.go, 'install-go')}
                   className="p-1.5 rounded bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 border border-zinc-200 shadow-sm transition-all"
                   id="btn-copy-go"
                 >
@@ -1460,7 +1250,7 @@ reponerve review "webhook"`}
                 Planned
               </span>
               <p className="text-xs text-zinc-600 font-mono">
-                <strong>Homebrew support is currently planned.</strong> Once released, you will be able to install using: <code className="bg-zinc-200 px-1 py-0.5 rounded text-zinc-800 font-mono">brew install reponerve/tap/reponerve</code>
+                <strong>{homebrew.note}</strong> When published: <code className="bg-zinc-200 px-1 py-0.5 rounded text-zinc-800 font-mono">{homebrew.tap}</code> then <code className="bg-zinc-200 px-1 py-0.5 rounded text-zinc-800 font-mono">{homebrew.install}</code>
               </p>
             </div>
           </div>
@@ -1473,53 +1263,13 @@ reponerve review "webhook"`}
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="text-left relative pl-10" id="step-one">
-                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-xs font-extrabold text-zinc-800 shadow-sm">1</div>
-                <h5 className="font-semibold text-sm text-zinc-800 mb-1.5 font-mono">Step 1 — Install RepoNerve</h5>
-                <p className="text-zinc-500 text-xs leading-relaxed">
-                  Install globally via <code className="bg-zinc-200/60 px-1 rounded">npm</code>, our dedicated platform shell script, or download directly from the Go source.
-                </p>
-              </div>
-
-              <div className="text-left relative pl-10" id="step-two">
-                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-xs font-extrabold text-zinc-800 shadow-sm">2</div>
-                <h5 className="font-semibold text-sm text-zinc-800 mb-1.5 font-mono">Step 2 — Set Up Repository</h5>
-                <p className="text-zinc-500 text-xs leading-relaxed">
-                  Navigate to your codebase and run <code className="bg-zinc-200/60 px-1 rounded">reponerve init</code> to bootstrap the local index database and configuration.
-                </p>
-              </div>
-
-              <div className="text-left relative pl-10" id="step-three">
-                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-xs font-extrabold text-zinc-800 shadow-sm">3</div>
-                <h5 className="font-semibold text-sm text-zinc-800 mb-1.5 font-mono">Step 3 — Verify Setup</h5>
-                <p className="text-zinc-500 text-xs leading-relaxed">
-                  Run <code className="bg-zinc-200/60 px-1 rounded">reponerve status</code> to verify indexing rules, file watch state, and current database synchronization.
-                </p>
-              </div>
-
-              <div className="text-left relative pl-10" id="step-four">
-                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-xs font-extrabold text-zinc-800 shadow-sm">4</div>
-                <h5 className="font-semibold text-sm text-zinc-800 mb-1.5 font-mono">Step 4 — Understand Code</h5>
-                <p className="text-zinc-500 text-xs leading-relaxed">
-                  Execute <code className="bg-zinc-200/60 px-1 rounded">reponerve index</code> to compile embeddings, and use <code className="bg-zinc-200/60 px-1 rounded">reponerve search</code> for hybrid queries.
-                </p>
-              </div>
-
-              <div className="text-left relative pl-10" id="step-five">
-                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-xs font-extrabold text-zinc-800 shadow-sm">5</div>
-                <h5 className="font-semibold text-sm text-zinc-800 mb-1.5 font-mono">Step 5 — Plan and Ship</h5>
-                <p className="text-zinc-500 text-xs leading-relaxed">
-                  Use RepoNerve's indexed dependencies and AST insights to map code refactorings and ship changes confidently.
-                </p>
-              </div>
-
-              <div className="text-left relative pl-10" id="step-six">
-                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-xs font-extrabold text-zinc-800 shadow-sm">6</div>
-                <h5 className="font-semibold text-sm text-zinc-800 mb-1.5 font-mono">Step 6 — Use with AI Chat</h5>
-                <p className="text-zinc-500 text-xs leading-relaxed">
-                  Start the local server using <code className="bg-zinc-200/60 px-1 rounded">reponerve mcp start</code>. Add it to Cursor or VS Code for direct, high-fidelity codebase-aware intelligence.
-                </p>
-              </div>
+              {setupSteps.map((step, index) => (
+                <div key={step.title} className="text-left relative pl-10" id={`step-${index + 1}`}>
+                  <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-xs font-extrabold text-zinc-800 shadow-sm">{index + 1}</div>
+                  <h5 className="font-semibold text-sm text-zinc-800 mb-1.5 font-mono">{step.title}</h5>
+                  <p className="text-zinc-500 text-xs leading-relaxed">{step.body}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -1546,9 +1296,9 @@ reponerve review "webhook"`}
               <div className="flex flex-col gap-2 p-4 rounded-xl bg-white border border-zinc-200 max-w-md shadow-sm mb-6">
                 <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest pl-0.5">Local Compile Command:</span>
                 <div className="flex items-center justify-between gap-2 bg-zinc-50 p-2.5 rounded border border-zinc-200">
-                  <code className="font-mono text-xs text-zinc-800 truncate">git clone https://github.com/reponerve/reponerve && cd reponerve && go build</code>
+                  <code className="font-mono text-xs text-zinc-800 truncate">{contributor.cloneCommand}</code>
                   <button
-                    onClick={() => handleCopy('git clone https://github.com/reponerve/reponerve && cd reponerve && go build', 'clone-cmd')}
+                    onClick={() => handleCopy(contributor.cloneCommand, 'clone-cmd')}
                     className="p-1 rounded bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 border border-zinc-200 shadow-sm"
                     id="btn-copy-clone"
                   >
@@ -1560,7 +1310,7 @@ reponerve review "webhook"`}
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
                 <a 
-                  href="https://github.com/reponerve/reponerve/issues" 
+                  href={links.issues} 
                   target="_blank" 
                   rel="noreferrer"
                   className="px-5 py-2.5 rounded-lg text-xs font-mono font-bold bg-zinc-950 hover:bg-zinc-800 text-white transition-all active:scale-95 shadow-sm inline-flex items-center gap-2"
@@ -1667,10 +1417,10 @@ reponerve review "webhook"`}
 
             <div className="space-y-2 max-w-md relative z-10">
               <h3 className="text-xl sm:text-2xl font-black text-zinc-950 font-mono">
-                Subscribe to Nerve Alerts
+                Stay in the Loop
               </h3>
               <p className="text-zinc-500 text-xs sm:text-sm font-normal leading-relaxed">
-                Stay updated on new features, pre-commit templates, and security reflexes designed to safeguard your repository ecosystems.
+                Get release notes and updates for RepoNerve — new MCP tools, discipline features, and integration guides.
               </p>
             </div>
 
@@ -1678,7 +1428,7 @@ reponerve review "webhook"`}
               {subscribedDemo ? (
                 <div className="w-full p-3 bg-zinc-900 text-white font-mono text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm">
                   <Check className="w-4 h-4 text-white animate-bounce" />
-                  <span>Success! You have subscribed to Nerve updates</span>
+                  <span>Subscribed — watch GitHub releases for updates</span>
                 </div>
               ) : (
                 <>
@@ -1720,10 +1470,10 @@ reponerve review "webhook"`}
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 font-mono">
-            <a href="https://github.com/reponerve/reponerve" target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-github">GitHub</a>
-            <a href="https://github.com/reponerve/reponerve/blob/main/LICENSE" target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-license">Apache-2.0 License</a>
-            <a href="https://reponerve.github.io/docs" target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-docs">Documentation</a>
-            <a href="https://github.com/reponerve/reponerve/issues" target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-issues">Report Issue</a>
+            <a href={links.github} target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-github">GitHub</a>
+            <a href={links.license} target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-license">Apache-2.0 License</a>
+            <a href={links.docs} target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-docs">Documentation</a>
+            <a href={links.issues} target="_blank" rel="noreferrer" className="hover:text-zinc-900 transition-colors" id="footer-link-issues">Report Issue</a>
           </div>
 
           <div className="font-mono text-[11px] text-zinc-400">

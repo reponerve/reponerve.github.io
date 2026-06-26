@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync site data from reponerve/reponerve
+        run: npm run sync
+
+      - name: Verify site-data.json is committed
+        run: |
+          if ! git diff --quiet src/site-data.json; then
+            echo "::error::src/site-data.json is out of date. Run: npm run sync && commit the file."
+            git diff src/site-data.json
+            exit 1
+          fi
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

@@ -1,0 +1,212 @@
+{
+  "generatedAt": "2026-06-26T04:33:56.627Z",
+  "source": {
+    "repository": "reponerve/reponerve",
+    "ref": "main"
+  },
+  "version": "v1.5.1",
+  "install": {
+    "script": "curl -fsSL https://raw.githubusercontent.com/reponerve/reponerve/main/scripts/install.sh | bash",
+    "npm": "npm install -g reponerve",
+    "go": "go install github.com/reponerve/reponerve/cmd/reponerve@v1.5.1"
+  },
+  "stats": {
+    "languages": 20,
+    "languagesLabel": "Go + 19 Tree-sitter languages",
+    "mcpTools": 49
+  },
+  "links": {
+    "website": "https://reponerve.github.io/",
+    "websiteRepo": "https://github.com/reponerve/reponerve.github.io",
+    "github": "https://github.com/reponerve/reponerve",
+    "docs": "https://github.com/reponerve/reponerve/tree/main/docs",
+    "install": "https://github.com/reponerve/reponerve/blob/main/docs/install.md",
+    "license": "https://github.com/reponerve/reponerve/blob/main/LICENSE",
+    "demoGif": "https://github.com/reponerve/reponerve/blob/main/docs/assets/reponerve-demo.gif?raw=true",
+    "releases": "https://github.com/reponerve/reponerve/releases",
+    "issues": "https://github.com/reponerve/reponerve/issues",
+    "contributing": "https://github.com/reponerve/reponerve/blob/main/docs/governance/contribution-guide.md"
+  },
+  "contributor": {
+    "cloneCommand": "git clone https://github.com/reponerve/reponerve && cd reponerve && make install"
+  },
+  "mcpClients": [
+    {
+      "label": "PRIMARY",
+      "name": "Cursor"
+    },
+    {
+      "label": "CLIENT",
+      "name": "VS Code Copilot"
+    },
+    {
+      "label": "SUPPORTED",
+      "name": "JetBrains"
+    },
+    {
+      "label": "SUPPORTED",
+      "name": "Continue"
+    },
+    {
+      "label": "SUPPORTED",
+      "name": "Claude Desktop"
+    }
+  ],
+  "homebrew": {
+    "status": "tap-in-progress",
+    "note": "Homebrew tap packaging exists; until published, use the install script or release archives.",
+    "tap": "brew tap reponerve/tap",
+    "install": "brew install reponerve"
+  },
+  "teamPitch": "Hey team, we're setting up RepoNerve for our repository. It scans git, ADRs, and code structure once and builds local software memory (.reponerve/memory.db). Developers and AI agents query that memory for why something exists, who owns it, and what breaks if we change it — instead of grepping every session. Run reponerve init and reponerve scan; it plugs into Cursor, Copilot, and other MCP hosts. No cloud required.",
+  "demoScript": "# 1. Install & verify binary\nreponerve --version\n\n# 2. Go to your local git repository\ncd /path/to/your-repo\n\n# 3. Initialize workspace database\nreponerve init\n\n# 4. Scan repository & build memory\nreponerve scan\n\n# 5. Diagnostic check & orientation onboarding\nreponerve doctor\nreponerve onboard\n\n# 6. Task planning, reuse check, and code review\nreponerve plan \"Add webhook notifications\"\nreponerve reuse-check \"add webhook\"\nreponerve review \"webhook\"\nreponerve ship-check \"webhook\"",
+  "commandDemos": {
+    "init": {
+      "id": "init",
+      "label": "reponerve init",
+      "command": "reponerve init",
+      "output": [
+        "✓ Workspace created",
+        "✓ Configuration created",
+        "✓ Database initialized",
+        "✓ IDE integration installed (Cursor skill + MCP + development discipline rules)",
+        "  Chat without MCP: reponerve ask \"...\" --json  (or /reponerve in chat)",
+        "  + .cursor/mcp.json",
+        "  + .cursor/skills/reponerve/SKILL.md",
+        "  → Restart MCP in your IDE, then use Agent chat with RepoNerve",
+        "✓ RepoNerve ready",
+        "  → Run: reponerve scan"
+      ]
+    },
+    "scan": {
+      "id": "scan",
+      "label": "reponerve scan",
+      "command": "reponerve scan",
+      "output": [
+        "Scanning repository...",
+        "✓ Repository discovered",
+        "✓ 45 commits indexed",
+        "✓ 12 ADRs indexed",
+        "✓ Code intelligence indexed",
+        "✓ Repository-code links updated",
+        "✓ Search index rebuilt",
+        "✓ Discipline policy updated",
+        "Scan completed. (20 languages via Go + Tree-sitter)"
+      ]
+    },
+    "doctor": {
+      "id": "doctor",
+      "label": "reponerve doctor",
+      "command": "reponerve doctor",
+      "output": [
+        "RepoNerve doctor: all checks passed.",
+        "  [ok] workspace: .reponerve workspace present",
+        "  [ok] database: memory.db readable",
+        "  [ok] git_head: scan matches current HEAD",
+        "  [ok] code_index: code intelligence index fresh",
+        "  [warn] post_commit_hook: post-commit hook not installed (optional)"
+      ]
+    },
+    "onboard": {
+      "id": "onboard",
+      "label": "reponerve onboard",
+      "command": "reponerve onboard --format compact --token-budget 400",
+      "output": [
+        "RepoNerve onboarding evidence pack",
+        "Repository: your-repo (Go)",
+        "Key decisions: Local-first SQLite, MCP agent surface, evidence-backed outputs",
+        "Starting points: cmd/, internal/, docs/adr/",
+        "Next: reponerve plan \"your task\" --json"
+      ]
+    },
+    "plan": {
+      "id": "plan",
+      "label": "reponerve plan",
+      "command": "reponerve plan \"Add OAuth login\"",
+      "output": [
+        "Planning task: \"Add OAuth login\"",
+        "Retrieving relevant contexts from codebase memory...",
+        "Impact: internal/auth/oauth.go, cmd/reponerve/main.go",
+        "Suggested steps:",
+        "  1. Review ADRs constraining auth changes",
+        "  2. Read entity briefings for auth package symbols",
+        "  3. Run reuse-check before adding new middleware",
+        "Tip: reponerve reuse-check \"OAuth middleware\" --json"
+      ]
+    },
+    "mcp": {
+      "id": "mcp",
+      "label": "reponerve mcp",
+      "command": "reponerve mcp",
+      "output": [
+        "Starting RepoNerve MCP server (stdio)...",
+        "Registered 49 tools (ask, plan, explain, reuse_check, ship_check, doctor, …)",
+        "Workspace: .reponerve",
+        "Client connected: Cursor",
+        "Tool call: ask — \"Where is rate limiting configured?\"",
+        "Response: evidence pack (completeness: full, 214 tokens)"
+      ]
+    }
+  },
+  "configPresets": {
+    "default": {
+      "title": "Default Profile",
+      "subtitle": "Local-first SQLite memory and ADR ingestion",
+      "description": "Default local-first settings: SQLite memory, ADR ingestion, no external AI provider.",
+      "code": "repository:\n  path: \".\"\n\nstorage:\n  sqlite_path: \".reponerve/memory.db\"\n\nai:\n  provider: \"none\"\n\ningestion:\n  document_paths:\n    - path: \"docs/adr\"\n      format: \"markdown\"",
+      "outcomes": [
+        "Local SQLite memory at .reponerve/memory.db",
+        "ADR document indexing from docs/adr",
+        "AI provider disabled (deterministic scan and query)"
+      ]
+    },
+    "adrExtended": {
+      "title": "Extended Decisions",
+      "subtitle": "Additional docs/decisions folder indexing",
+      "description": "Index additional decision folders alongside ADRs for broader repository intelligence.",
+      "code": "repository:\n  path: \".\"\n\nstorage:\n  sqlite_path: \".reponerve/memory.db\"\n\nai:\n  provider: \"none\"\n\ningestion:\n  document_paths:\n    - path: \"docs/adr\"\n      format: \"markdown\"\n    - path: \"docs/decisions\"\n      format: \"markdown\"",
+      "outcomes": [
+        "Multi-directory ADR and decision ingestion",
+        "Same local-first SQLite storage model",
+        "Configurable paths per RFC-005"
+      ]
+    },
+    "rfcPaths": {
+      "title": "RFC Ingestion",
+      "subtitle": "Include docs/rfc in document_paths",
+      "description": "Include RFC documents in scan ingestion for architecture-heavy repositories.",
+      "code": "repository:\n  path: \".\"\n\nstorage:\n  sqlite_path: \".reponerve/memory.db\"\n\nai:\n  provider: \"none\"\n\ningestion:\n  document_paths:\n    - path: \"docs/adr\"\n      format: \"markdown\"\n    - path: \"docs/rfc\"\n      format: \"markdown\"",
+      "outcomes": [
+        "RFC markdown ingestion enabled",
+        "Repository + code linking unchanged",
+        "Document paths merged at scan time"
+      ]
+    }
+  },
+  "setupSteps": [
+    {
+      "title": "Step 1 — Install RepoNerve",
+      "body": "Install globally via npm, the install script, or go install — then run reponerve --version."
+    },
+    {
+      "title": "Step 2 — Initialize & Scan",
+      "body": "From your repo root: reponerve init then reponerve scan to build local memory."
+    },
+    {
+      "title": "Step 3 — Verify Setup",
+      "body": "Run reponerve doctor to check memory health, scan freshness, and MCP configuration."
+    },
+    {
+      "title": "Step 4 — Understand Code",
+      "body": "Use reponerve onboard, reponerve ask, and reponerve explain-* before editing."
+    },
+    {
+      "title": "Step 5 — Plan and Ship",
+      "body": "Run reponerve plan, reuse-check, review, and ship-check before merge."
+    },
+    {
+      "title": "Step 6 — Connect AI Tools",
+      "body": "Run reponerve mcp or use MCP config installed by init in Cursor, VS Code, or Copilot."
+    }
+  ]
+}

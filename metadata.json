@@ -1,6 +1,4 @@
 {
-  "name": "reponerve Showcase",
-  "description": "Minimalist, high-performance landing page showcasing reponerve - the nervous system for git repositories.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "RepoNerve Website",
+  "description": "Official website at reponerve.github.io — local-first software understanding for developers and AI agents."
 }
