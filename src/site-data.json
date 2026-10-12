@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-10-05T20:19:43.810Z",
+  "generatedAt": "2026-10-12T20:51:16.734Z",
   "source": {
     "repository": "reponerve/reponerve",
     "ref": "main"
   },
-  "version": "v1.5.1",
+  "version": "v1.6.0",
   "install": {
     "script": "curl -fsSL https://raw.githubusercontent.com/reponerve/reponerve/main/scripts/install.sh | bash",
     "npm": "npm install -g reponerve",
-    "go": "go install github.com/reponerve/reponerve/cmd/reponerve@v1.5.1"
+    "go": "go install github.com/reponerve/reponerve/cmd/reponerve@v1.6.0"
   },
   "stats": {
     "languages": 20,
